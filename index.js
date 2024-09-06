@@ -7,13 +7,12 @@ const path = require("path");
 const app = express();
 
 // Connect to MongoDB
-mongoose
-  .connect(process.env.MONGO_URI,{
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.log(err));
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+.then(() => console.log("MongoDB connected"))
+.catch((err) => {
+  console.error("Error connecting to MongoDB", err);
+});
+
 
 // Set view engine to EJS
 app.set("view engine", "ejs");
@@ -34,10 +33,16 @@ const ItemSchema = new mongoose.Schema({
 const Item = mongoose.model("Item", ItemSchema);
 
 // Home route to display items from the database
-app.get("/", async (req, res) => {
-  const items = await Item.find();
-  res.render("index", { items });
-});
+app.get('/', async (req, res) => {
+    try {
+      const items = await Item.find(); // Awaiting database query
+      res.render('index', { items });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Internal Server Error");
+    }
+  });
+  
 
 // Route to handle form submission to add a new item
 app.post("/add-item", async (req, res) => {
