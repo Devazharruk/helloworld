@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MongoDB Express EJS App</title>
   <style>
-    /* Add some basic styling */
     ul {
       list-style-type: none;
       padding: 0;
@@ -32,6 +31,7 @@
       cursor: pointer;
     }
   </style>
+  <script src="/socket.io/socket.io.js"></script> <!-- Add Socket.IO script -->
 </head>
 <body>
   <h1>Items List</h1>
@@ -52,6 +52,25 @@
   </form>
 
   <script>
+    const socket = io(); // Connect to the server using Socket.IO
+
+    // Listen for 'item-added' event
+    socket.on('item-added', (item) => {
+      const itemsList = document.getElementById('items-list');
+      const li = document.createElement('li');
+      li.id = `item-${item._id}`;
+      li.innerHTML = `<span>${item.name}</span> <button onclick="deleteItem('${item._id}')">Delete</button>`;
+      itemsList.appendChild(li);
+    });
+
+    // Listen for 'item-deleted' event
+    socket.on('item-deleted', (itemId) => {
+      const itemElement = document.getElementById(`item-${itemId}`);
+      if (itemElement) {
+        itemElement.remove();
+      }
+    });
+
     async function addItem(event) {
       event.preventDefault(); // Prevent page refresh
 
@@ -69,17 +88,7 @@
       });
 
       if (response.ok) {
-        const newItem = await response.json(); // Get the new item
-
-        // Dynamically add the new item to the list
-        const itemsList = document.getElementById('items-list');
-        const li = document.createElement('li');
-        li.id = `item-${newItem._id}`;
-        li.innerHTML = `<span>${newItem.name}</span> <button onclick="deleteItem('${newItem._id}')">Delete</button>`;
-        itemsList.appendChild(li);
-
-        // Clear the input field
-        form.reset();
+        form.reset(); // Clear the input field
       } else {
         console.error('Error adding item');
       }
@@ -95,11 +104,7 @@
         body: JSON.stringify({ id: itemId }),
       });
 
-      if (response.ok) {
-        // Remove the item from the list
-        const itemElement = document.getElementById(`item-${itemId}`);
-        itemElement.remove();
-      } else {
+      if (!response.ok) {
         console.error('Error deleting item');
       }
     }
