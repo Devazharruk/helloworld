@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const path = require("path");
 const cors = require("cors");
-require("dotenv").config()
+require("dotenv").config();
 // Create an Express app
 const app = express();
 
@@ -68,26 +68,48 @@ app.post("/add-item", async (req, res) => {
 });
 // Route to delete an item
 app.post("/delete-item", async (req, res) => {
-    try {
-      await Item.findByIdAndDelete(req.body.id);
-      res.redirect("/");
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Internal Server Error");
-    }
-  });
-  
-  // Route to update an item
-  app.post("/update-item", async (req, res) => {
-    try {
-      await Item.findByIdAndUpdate(req.body.id, { name: req.body.name });
-      res.redirect("/");
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Internal Server Error");
-    }
-  });
-  
+  try {
+    await Item.findByIdAndDelete(req.body.id);
+    res.redirect("/");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// Route to update an item
+app.post("/update-item", async (req, res) => {
+  try {
+    await Item.findByIdAndUpdate(req.body.id, { name: req.body.name });
+    res.redirect("/");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+// Route to handle form submission to add a new item
+app.post("/add-item", async (req, res) => {
+  try {
+    const newItem = new Item({ name: req.body.name });
+    await newItem.save();
+    res.status(201).json(newItem); // Return new item as JSON
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Route to delete an item
+app.post("/delete-item", async (req, res) => {
+  try {
+    await Item.findByIdAndDelete(req.body.id);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 // Start the server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

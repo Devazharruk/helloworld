@@ -1,122 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MongoDB Express EJS App</title>
-  </head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MongoDB Express EJS App</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      padding: 20px;
-    }
-
-    h1,
-    h2 {
-      color: #333;
-    }
-
+    /* Add some basic styling */
     ul {
       list-style-type: none;
       padding: 0;
     }
-
     li {
-      background-color: #fff;
-      margin: 10px 0;
+      background-color: #f0f0f0;
       padding: 10px;
+      margin: 5px 0;
       border-radius: 5px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-
-    li form {
-      display: inline;
-    }
-
     input[type="text"] {
       padding: 5px;
-      font-size: 14px;
+      margin-right: 10px;
     }
-
     button {
       padding: 5px 10px;
-      background-color: #28a745;
+      background-color: #4CAF50;
       color: white;
       border: none;
       border-radius: 3px;
       cursor: pointer;
-      font-size: 14px;
-    }
-
-    button.delete {
-      background-color: #dc3545;
-    }
-
-    button.update {
-      background-color: #007bff;
-    }
-
-    form.update-form {
-      display: none;
-    }
-
-    .item-name {
-      flex-grow: 1;
-      margin-right: 10px;
     }
   </style>
-  <body>
-    <h1>Items List</h1>
+</head>
+<body>
+  <h1>Items List</h1>
 
-    <ul>
-      <% items.forEach(item => { %>
-      <li>
-        <span class="item-name"><%= item.name %></span>
-
-        <!-- Delete Button -->
-        <form action="/delete-item" method="POST" style="margin-right: 10px">
-          <input type="hidden" name="id" value="<%= item._id %>" />
-          <button type="submit" class="delete">Delete</button>
-        </form>
-
-        <!-- Edit Button to show/hide update form -->
-        <button
-          type="button"
-          class="update"
-          onclick="toggleUpdateForm('<%= item._id %>')"
-        >
-          Edit
-        </button>
-
-        <!-- Update Form -->
-        <form
-          id="update-form-<%= item._id %>"
-          class="update-form"
-          action="/update-item"
-          method="POST"
-        >
-          <input type="hidden" name="id" value="<%= item._id %>" />
-          <input type="text" name="name" placeholder="New Item Name" required />
-          <button type="submit" class="update">Update</button>
-        </form>
+  <ul id="items-list">
+    <% items.forEach(item => { %>
+      <li id="item-<%= item._id %>">
+        <span><%= item.name %></span>
+        <button onclick="deleteItem('<%= item._id %>')">Delete</button>
       </li>
-      <% }); %>
-    </ul>
+    <% }); %>
+  </ul>
 
-    <h2>Add a new item</h2>
-    <form action="/add-item" method="POST">
-      <input type="text" name="name" placeholder="Item Name" required />
-      <button type="submit">Add Item</button>
-    </form>
+  <h2>Add a new item</h2>
+  <form id="add-item-form" onsubmit="addItem(event)">
+    <input type="text" name="name" placeholder="Item Name" required>
+    <button type="submit">Add Item</button>
+  </form>
 
-    <script>
-        function toggleUpdateForm(itemId) {
-          const updateForm = document.getElementById(`update-form-${itemId}`);
-          updateForm.style.display = updateForm.style.display === 'none' ? 'block' : 'none';
-        }
-      </script>
-  </body>
+  <script>
+    async function addItem(event) {
+      event.preventDefault(); // Prevent page refresh
+
+      const form = document.getElementById('add-item-form');
+      const formData = new FormData(form);
+      const itemName = formData.get('name');
+
+      // Send AJAX request to add item
+      const response = await fetch('/add-item', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: itemName }),
+      });
+
+      if (response.ok) {
+        const newItem = await response.json(); // Get the new item
+
+        // Dynamically add the new item to the list
+        const itemsList = document.getElementById('items-list');
+        const li = document.createElement('li');
+        li.id = `item-${newItem._id}`;
+        li.innerHTML = `<span>${newItem.name}</span> <button onclick="deleteItem('${newItem._id}')">Delete</button>`;
+        itemsList.appendChild(li);
+
+        // Clear the input field
+        form.reset();
+      } else {
+        console.error('Error adding item');
+      }
+    }
+
+    async function deleteItem(itemId) {
+      // Send AJAX request to delete the item
+      const response = await fetch('/delete-item', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: itemId }),
+      });
+
+      if (response.ok) {
+        // Remove the item from the list
+        const itemElement = document.getElementById(`item-${itemId}`);
+        itemElement.remove();
+      } else {
+        console.error('Error deleting item');
+      }
+    }
+  </script>
+</body>
 </html>
