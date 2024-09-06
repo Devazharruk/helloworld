@@ -8,13 +8,10 @@ const app = express();
 
 // Connect to MongoDB
 mongoose
-  .connect(
-    "mongodb://junaid:junaid222@testing-shard-00-00.avc9c.mongodb.net:27017,testing-shard-00-01.avc9c.mongodb.net:27017,testing-shard-00-02.avc9c.mongodb.net:27017/?ssl=true&replicaSet=atlas-k0rmhp-shard-0&authSource=admin&retryWrites=true&w=majority&appName=testing",
-    {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    }
-  )
+  .connect(process.env.MONGO_URI,{
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log(err));
 
