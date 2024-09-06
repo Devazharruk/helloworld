@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MongoDB Express EJS App</title>
+</head>
+<body>
+  <h1>Items List</h1>
+
+  <ul>
+    <% items.forEach(item => { %>
+      <li><%= item.name %></li>
+    <% }); %>
+  </ul>
+
+  <h2>Add a new item</h2>
+  <form action="/add-item" method="POST">
+    <input type="text" name="name" placeholder="Item Name" required>
+    <button type="submit">Add Item</button>
+  </form>
+</body>
+</html>
