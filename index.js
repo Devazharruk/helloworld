@@ -66,7 +66,28 @@ app.post("/add-item", async (req, res) => {
   await newItem.save();
   res.redirect("/");
 });
-
+// Route to delete an item
+app.post("/delete-item", async (req, res) => {
+    try {
+      await Item.findByIdAndDelete(req.body.id);
+      res.redirect("/");
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Internal Server Error");
+    }
+  });
+  
+  // Route to update an item
+  app.post("/update-item", async (req, res) => {
+    try {
+      await Item.findByIdAndUpdate(req.body.id, { name: req.body.name });
+      res.redirect("/");
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Internal Server Error");
+    }
+  });
+  
 // Start the server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
