@@ -5,13 +5,15 @@ const cors = require("cors");
 const path = require("path");
 const http = require("http");
 const { Server } = require("socket.io");
-require("dotenv").config()
+require("dotenv").config();
 // Create an Express app and an HTTP server
 const app = express();
 const server = http.createServer(app);
 
 // Initialize Socket.IO
-const io = new Server(server);
+const io = new Server(server, {
+  transports: ["polling"], // force using long-polling
+});
 
 // Middleware for parsing JSON data
 app.use(express.json());
@@ -35,7 +37,13 @@ app.set("views", path.join(__dirname, "views"));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Allow CORS
-app.use(cors({ credentials: true, methods: ["POST", "DELETE", "PUT", "GET"], origin: "*" }));
+app.use(
+  cors({
+    credentials: true,
+    methods: ["POST", "DELETE", "PUT", "GET"],
+    origin: "*",
+  })
+);
 
 // Serve static files from public folder
 app.use(express.static(path.join(__dirname, "public")));
@@ -62,10 +70,10 @@ app.post("/add-item", async (req, res) => {
   try {
     const newItem = new Item({ name: req.body.name });
     await newItem.save();
-    
+
     // Emit event to all connected users
-    io.emit('item-added', newItem);
-    
+    io.emit("item-added", newItem);
+
     res.status(201).json(newItem); // Return newly created item
   } catch (error) {
     console.error(error);
@@ -79,7 +87,7 @@ app.post("/delete-item", async (req, res) => {
     await Item.findByIdAndDelete(req.body.id);
 
     // Emit event to all connected users
-    io.emit('item-deleted', req.body.id);
+    io.emit("item-deleted", req.body.id);
 
     res.status(200).json({ success: true });
   } catch (error) {
